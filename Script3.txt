@@ -1,0 +1,45 @@
+﻿# Read user input
+$Hostname = Read-Host -Prompt "Please enter your Host name"
+$RFCnumber = Read-Host "Please enter your RFC Number"
+
+
+# Get today's date with proper formatting
+$today = Get-Date -Format "ddMMyyy-HHmm"
+$longdate = Get-Date -Format "F"
+
+{ $word = New-Object -ComObject word.application
+    $word.Visible = $false
+    $doc = $word.Documents.Add()
+    $doc.Styles["Normal"].ParagraphFormat.SpaceAfter = 0
+    $doc.Styles["Normal"].ParagraphFormat.SpaceBefore = 0
+    $margin = 36 # 1.26 cm
+    $doc.PageSetup.LeftMargin = $margin
+    $doc.PageSetup.RightMargin = $margin
+    $doc.PageSetup.TopMargin = $margin
+    $doc.PageSetup.BottomMargin = $margin
+}
+
+# Write this information to the file
+Set-Content -Value "First Name: $Hostname Lastname: $RFCnumber
+Date: $longdate <system>
+XXXXX
+<XX.XX>
+<DD MMM YYYY>
+(Name the role(s) of the individual responsible for performing this operational procedure)
+(RFC-ONENET-XXXXX, <Exact RFC Title>)
+(both the classified and unclassified networks, the classified network only, or the unclassified network only)
+(List why and when it is necessary to perform this operational test plan procedure. Define if training, prior experience, or knowledge transfer is required before operations are performed on the capability/system. If known, provide the frequency and priority of operational performance.)
+(This should be the operating condition [SIPRNet TNOSC, NIPRNet LNSC, etc.] and what, if any, special modifications had to be made to other systems in order to perform the test.)
+(This would consist of any traffic simulators, modem eliminators, port scanners, etc. that are used.)
+Solution Name – 1
+[Description or requirements]
+[Describe test criteria here]
+[Describe test procedure here]
+[Describe expected test results here]
+Solution Name – 2
+[Description or requirements 2]
+[Describe test criteria here 2]
+[Describe test procedure here 2]
+[Describe expected test results here 2]
+
+" -Path "C:\test\$today-$Hostname-$RFCnumber.doc"

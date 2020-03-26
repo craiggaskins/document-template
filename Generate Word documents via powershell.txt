@@ -1,0 +1,61 @@
+﻿Param(
+
+    [String]$basePath,
+    [String[]]$Include=@("*.cs"),
+    [String[]]$ignoreFiles=@(),
+    [String[]]$ignorePath=@()
+)
+
+function Resolve-RelativePath($path, $fromPath) {
+        $path = Resolve-RelativePath $path
+        $fromPath = Resolve-Relative-Path $fromPath
+        $fromUri = New-Object -TypeName system.uri -ArgumentList "$fromPath\"
+        $pathUri = New-Object -TypeName System.Uri -ArgumentList $path
+        return $fromUri.MakeRelativeUri($pathUri).ToString().Replace('/', [System.IO.Path]::DirectorySeparatorChar);
+}
+
+
+$word = New-Object -ComObject word.application
+$word.Visible = $false
+$doc = $word.Documents.Add()
+$doc.Styles["Normal"].ParagraphFormat.SpaceAfter = 0
+$doc.Styles["Normal"].ParagraphFormat.SpaceBefore = 0
+$margin = 36 # 1.26 cm
+$doc.PageSetup.LeftMargin = $margin
+$doc.PageSetup.RightMargin = $margin
+$doc.PageSetup.TopMargin = $margin
+$doc.PageSetup.BottomMargin = $margin
+$selection = $word.Selection
+
+
+Get-ChildItem -Path $basePath -r -Include $Include | ForEach-Object {
+        $filePath = $_.FullName
+        $relativePath = Resolve-RelativePath $filePath $basePath
+        $filename = $_.Name
+
+        # Filter out files
+        if ($ignoreFiles -contains $fileName) {
+            Write-Host "Skipping file $fileName" -ForegroundColor DarkGray
+            return
+        }
+        if (($ignorePath | Where-Object { $relativePath -like $_}).Length -gt 0) {
+            Write-Host "Skipping file $filePath" -ForegroundColor DarkGray
+            return
+        }
+
+        $temp = Get-Content $filePath -Encoding UTF8 -Raw
+
+
+$selection.Style = "Heading 1"
+$selection.TypeText($relativePath)
+$selection.TypeParagraph()
+$selection.Style = "Normal"
+$selection.TypeText($temp) ;
+$selection.TypeParagraph()
+}
+
+$outputPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
+$outputPath = $outputPath + "sources.docx"
+$doc.SaveAs($outputPath)
+$doc.Close()
+$word.Quit()
